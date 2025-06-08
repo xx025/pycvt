@@ -1,0 +1,18 @@
+[project]
+name = "pycvt"
+version = "0.0.1"
+description = "A lightweight Python toolkit for seamless image composition, color processing, and visualizing detection results."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "easyfont>=0.0.1.post10",
+    "imageio>=2.37.0",
+    "pillow>=11.2.1",
+    "torch>=2.7.1",
+    "torchvision>=0.22.1",
+    "ultralytics>=8.3.151",
+]
+
+
+[tool.uv]
+index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
