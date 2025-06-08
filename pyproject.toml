@@ -1,6 +1,10 @@
 [project]
 name = "pycvt"
 version = "0.0.1"
+authors = [
+  { name = "ferretsprite", email = "ferret-sprite-goon@duck.com" }
+]
+
 description = "A lightweight Python toolkit for seamless image composition, color processing, and visualizing detection results."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,6 +17,10 @@ dependencies = [
     "ultralytics>=8.3.151",
 ]
 
+[project.urls]
+Homepage = "https://github.com/xx025/pycvt"
+Repository = "https://github.com/xx025/pycvt"
+Documentation = "https://github.com/xx025/pycvt#readme"
 
 [tool.uv]
 index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"

@@ -8,6 +8,13 @@
 pip install pycvt --upgrade
 ```
 
+## dev
+
+``` 
+uv sync
+```
+
+
 ## API List
 
 - [colors.py](pycvt/clolors/colors.py)

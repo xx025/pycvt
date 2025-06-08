@@ -1,5 +1,5 @@
 def main():
-    print("Hello from reddog!")
+    print("Hello from pycvt!")
 
 
 if __name__ == "__main__":
