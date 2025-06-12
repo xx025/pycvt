@@ -16,10 +16,8 @@ def convert_rgba(img: np.ndarray) -> np.ndarray:
         np.ndarray: RGBA 图像
     """
     if len(img.shape) == 2:
-        # 灰度图 (H, W)
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGBA)
     elif img.shape[2] == 3:
-        # RGB (H, W, 3)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
     elif img.shape[2] == 4:
         # 已经是 RGBA，直接返回
@@ -57,30 +55,6 @@ def crop_image(img: np.ndarray, x: int, y: int, crop_w: int, crop_h: int) -> np.
     return img[y:y_end, x:x_end]
 
 
-def blend_rgba(
-        bg_crop: np.ndarray,
-        fg_crop: np.ndarray,
-        **kwargs,
-) -> np.ndarray:
-    """
-    只替换 fg_crop 中 alpha > 0 的区域，直接覆盖 bg_crop 对应像素，
-    其他部分保留 bg_crop。
-
-    要求 bg_crop 和 fg_crop 形状相同，且均为 RGBA。
-    """
-    if bg_crop.shape != fg_crop.shape or bg_crop.shape[2] != 4:
-        raise ValueError("输入图像需为形状相同的 RGBA 图像")
-
-    out = bg_crop.copy()
-
-    alpha_mask = fg_crop[:, :, 3] > 0  # bool mask，fg不透明区域
-
-    for c in range(4):
-        channel_bg = out[:, :, c]
-        channel_fg = fg_crop[:, :, c]
-        channel_bg[alpha_mask] = channel_fg[alpha_mask]
-
-    return out
 
 
 def get_opaque_bounding_box(rgba_img: np.ndarray, alpha_threshold: int = 0):
