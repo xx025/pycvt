@@ -1,12 +1,13 @@
-from copy import deepcopy
+from typing import Union
 
 import cv2
 import numpy
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from distinctipy.distinctipy import get_rgb256, get_text_color
 from easyfont import getfont
 
-from pycvt.clolors.colors import getcolor, ensure_contrast
+from pycvt.clolors.colors import getcolor
+from pycvt.vision.utils import render_text_image
 
 
 def draw_text(
@@ -34,67 +35,81 @@ def draw_text(
     if font_path is None:  # 若未指定字体路径，则使用默认字体
         font_path = getfont()
 
-    text_color = text_color or getcolor(text)
-    background_color = background_color or getcolor("GhostWhite")
-    background_color = ensure_contrast(text_color, background_color)  # 确保文本颜色和背景颜色有足够对比度
+    h, w = img.shape[:2]
+    font_size = font_size if font_size else max(int(0.003 * min(w, h)), 2)
+    background_color = background_color if background_color is not None else getcolor()
+    if text_color is None:
+        text_color = get_rgb256(get_text_color(background_color / 255))  # 获取文本颜色，确保对比度
 
-    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    font = ImageFont.truetype(font_path, font_size)
-    draw = ImageDraw.Draw(img_pil)
-
-    spacing = font_size // 3
-    half_spacing = spacing // 2
-
-    text_bbox = draw.textbbox((0, 0), text, font=font, font_size=font_size, spacing=spacing)
-    text_bbox_h = text_bbox[3]
-    text_bbox_w = text_bbox[2]
-
-    bgpos = (
-        position[0] - text_bbox_w - half_spacing,
-        position[1] + spacing,
-        position[0] + spacing,
-        position[1] + text_bbox_h + spacing
+    text_rendered = render_text_image(
+        text,
+        font_path,
+        font_size,
+        text_color=text_color,
+        bg_color=background_color
     )
-
-    text_pos = position[0] - text_bbox_w, position[1] + half_spacing
-    draw.rectangle(bgpos, fill=background_color)
-    draw.text(text_pos, text, font=font, fill=text_color, spacing=spacing)
-    return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+    text_rendered = text_rendered[..., :img.shape[2]]
+    text_h, text_w = text_rendered.shape[:2]
+    x, y = position
+    x = max(0, x)
+    y = max(0, y)
+    x_end = min(w, x + text_w)
+    y_end = min(h, y + text_h)
+    img[y:y_end, x:x_end] = text_rendered[:y_end - y, :x_end - x]
+    return img
 
 
 def draw_bounding_boxes(
         image: numpy.ndarray,
-        boxes: list,
-        labels=None,
+        boxes: Union[np.ndarray, list],
+        labels: list = None,
         colors=None,
         width=None,
         font=None,
         font_size=None
 ):
-    img_copy = deepcopy(image)
-
-    count = len(boxes)
-    w, h = img_copy.shape[1], img_copy.shape[0]
+    h, w = image.shape[:2]
+    boxes = np.asarray(boxes, dtype=int)
+    n = len(boxes)
+    line_width = width if width else max(int(0.003 * min(w, h)), 2)
+    font_size = font_size if font_size else line_width * 6
+    font = font if font else getfont()
 
     if colors is None:
-        colors = list(map(getcolor, labels)) if labels else [getcolor()] * count
-
-    line_width = width if width else max(int(0.0035 * min(w, h)), 2)
-    font_size = font_size if font_size else max(int(0.018 * min(w, h)), 2)
-
-    font = font if font else getfont()
-    for idx, box in enumerate(boxes):
-        color = colors[idx]
-        xmin, ymin, xmax, ymax = box
-        img_copy = cv2.rectangle(img_copy, (xmin, ymin), (xmax, ymax), color, line_width)
         if labels:
-            label = labels[idx]
-            img_copy = draw_text(
-                img_copy,
+            colors = np.array([getcolor(label) for label in labels])
+        else:
+            colors = np.array([getcolor()] * n)
+    labels = labels if labels else [None] * n
+    boxes_colors = np.asarray(colors, dtype=int)
+
+    for box, label, color in zip(boxes, labels, boxes_colors):
+        xmin, ymin, xmax, ymax = box
+        image = cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color.tolist(), line_width)
+        if label:
+            text_color = get_rgb256(get_text_color(color / 255))  # 获取文本颜色，确保对比度
+            text_rendered = render_text_image(
                 label,
-                (xmax, ymax),
-                text_color=color[::-1],  # OpenCV uses BGR, PIL uses RGB
-                font_path=font,
-                font_size=font_size
-            )
-    return img_copy
+                font,
+                font_size,
+                text_color=text_color,
+                bg_color=color
+            )[..., :3]  # 确保只取 RGB 通道
+            text_h, text_w = text_rendered.shape[:2]
+            x, y = xmin, ymax
+            x = max(0, x)
+            y = max(0, y)
+            x_end = min(w, x + text_w)
+            y_end = min(h, y + text_h)
+            image[y:y_end, x:x_end] = text_rendered[:y_end - y, :x_end - x]
+    return image
+
+
+if __name__ == "__main__":
+    from PIL import Image
+    img = np.ones((800, 800, 3), dtype=np.uint8) * 255  # 创建一个黑色背景图像
+    boxes = [[50, 50, 200, 200], [300, 100, 550, 300]]
+    labels = ["Object A", "Object B 你好，世界！"]  # 标签列表
+    img_with_boxes = draw_bounding_boxes(img, boxes, labels, width=3)
+    img_with_boxes = Image.fromarray(img_with_boxes)
+    img_with_boxes.show()  # 显示图像

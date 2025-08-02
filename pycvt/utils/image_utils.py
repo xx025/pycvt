@@ -4,6 +4,33 @@ import cv2
 import numpy as np
 
 
+def blend_rgba(
+        bg_crop: np.ndarray,
+        fg_crop: np.ndarray,
+        alpha_threshold=10,  # 默认透明度阈值
+        **kwargs,
+) -> np.ndarray:
+    """
+    只替换 fg_crop 中 alpha > 0 的区域，直接覆盖 bg_crop 对应像素，
+    其他部分保留 bg_crop。
+
+    要求 bg_crop 和 fg_crop 形状相同，且均为 RGBA。
+    """
+    if bg_crop.shape != fg_crop.shape or bg_crop.shape[2] != 4:
+        raise ValueError("输入图像需为形状相同的 RGBA 图像")
+
+    out = bg_crop.copy()
+
+    alpha_mask = fg_crop[:, :, 3] > alpha_threshold
+
+    for c in range(4):
+        channel_bg = out[:, :, c]
+        channel_fg = fg_crop[:, :, c]
+        channel_bg[alpha_mask] = channel_fg[alpha_mask]
+
+    return out
+
+
 def convert_rgba(img: np.ndarray) -> np.ndarray:
     """
     支持灰度图、RGB图和RGBA图，统一输出 RGBA。
@@ -53,8 +80,6 @@ def crop_image(img: np.ndarray, x: int, y: int, crop_w: int, crop_h: int) -> np.
     y = max(0, y)
 
     return img[y:y_end, x:x_end]
-
-
 
 
 def get_opaque_bounding_box(rgba_img: np.ndarray, alpha_threshold: int = 0):
