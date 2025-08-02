@@ -64,14 +64,14 @@ def draw_bounding_boxes(
         boxes: Union[np.ndarray, list],
         labels: list = None,
         colors=None,
-        width=None,
+        line_width=None,
         font=None,
         font_size=None
 ):
     h, w = image.shape[:2]
     boxes = np.asarray(boxes, dtype=int)
     n = len(boxes)
-    line_width = width if width else max(int(0.003 * min(w, h)), 2)
+    line_width = line_width if line_width else max(int(0.003 * min(w, h)), 2)
     font_size = font_size if font_size else line_width * 6
     font = font if font else getfont()
 
@@ -110,6 +110,6 @@ if __name__ == "__main__":
     img = np.ones((800, 800, 3), dtype=np.uint8) * 255  # 创建一个黑色背景图像
     boxes = [[50, 50, 200, 200], [300, 100, 550, 300]]
     labels = ["Object A", "Object B 你好，世界！"]  # 标签列表
-    img_with_boxes = draw_bounding_boxes(img, boxes, labels, width=3)
+    img_with_boxes = draw_bounding_boxes(img, boxes, labels, line_width=3)
     img_with_boxes = Image.fromarray(img_with_boxes)
     img_with_boxes.show()  # 显示图像
