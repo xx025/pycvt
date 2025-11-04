@@ -9,6 +9,45 @@ from easyfont import getfont
 from pycvt.clolors.colors import getcolor
 from pycvt.vision.utils import render_text_image
 
+def get_text_positions(xmin, ymin, xmax, ymax, text_w, text_h, w, h, margin=2):
+    """
+    自动生成若干合理的位置，并保证不会超出边界
+    返回按优先级排序的 (x, y) 列表
+    """
+    positions = []
+
+    # 下方
+    y = ymax + margin
+    if y + text_h <= h:
+        positions.append((xmin, y))
+        positions.append((xmax - text_w, y))  # 右对齐
+        positions.append((xmin + (xmax - xmin)//2 - text_w//2, y))  # 居中
+
+    # 上方
+    y = ymin - text_h - margin
+    if y >= 0:
+        positions.append((xmin, y))
+        positions.append((xmax - text_w, y))
+        positions.append((xmin + (xmax - xmin)//2 - text_w//2, y))
+
+    # 左侧
+    x = xmin - text_w - margin
+    if x >= 0:
+        positions.append((x, ymin))
+        positions.append((x, ymax - text_h))
+
+    # 右侧
+    x = xmax + margin
+    if x + text_w <= w:
+        positions.append((x, ymin))
+        positions.append((x, ymax - text_h))
+
+    # 截断到图像范围
+    positions = [(max(0, min(x, w - text_w)), max(0, min(y, h - text_h))) for x, y in positions]
+    return positions
+
+
+
 
 def draw_bounding_boxes(
         image: numpy.ndarray,
@@ -41,7 +80,7 @@ def draw_bounding_boxes(
             text_color = get_rgb256(get_text_color(color / 255))
             text_rendered = render_text_image(label, font, font_size, text_color=text_color, bg_color=color)[..., :3]
             text_h, text_w = text_rendered.shape[:2]
-            try_poses = [(xmin, ymax + line_width + 2), (xmin, ymin - text_h - line_width), (xmin + line_width + 2, ymin + line_width + 2)]
+            try_poses =get_text_positions(xmin, ymin, xmax, ymax, text_w, text_h, w, h)
             for xstart, ystart in try_poses:
                 if xstart < 0 or ystart < 0 or xstart + text_w > w or ystart + text_h > h:
                     continue
@@ -50,12 +89,3 @@ def draw_bounding_boxes(
     return image
 
 
-if __name__ == "__main__":
-    from PIL import Image
-
-    img = np.ones((800, 800, 3), dtype=np.uint8) * 255  # 创建一个黑色背景图像
-    boxes = [[50, 50, 800, 800], [300, 100, 550, 300], [5, 5, 900, 900]]
-    labels = ["Object A", "Object B 你好，世界！", "MML"]  # 标签列表
-    img_with_boxes = draw_bounding_boxes(img, boxes, labels, line_width=2)
-    img_with_boxes = Image.fromarray(img_with_boxes)
-    img_with_boxes.show()  # 显示图像
