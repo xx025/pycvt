@@ -49,5 +49,9 @@ if __name__ == "__main__":
     print(cls, bbox)
 
     save_path = "/mnt/d/workspace/pycvt/scripts/coco8/000000000009_out.txt"
+    import torch
+
+    cls= torch.from_numpy(cls)
+    bbox = torch.from_numpy(bbox)
     save_yolo_annotations(save_path, cls, bbox)
     print(f"Saved annotations to {save_path}")
