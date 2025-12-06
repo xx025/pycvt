@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 
 
@@ -11,7 +12,7 @@ def render_text_image(text, font_path, font_size, text_color=(255, 255, 255), bg
     else:
         bg_color = (*bg_color, 255)[:4]  # 确保背景颜色是 RGBA 格式
 
-    font = ImageFont.truetype(font_path, font_size)
+    font = ImageFont.truetype(Path(font_path).as_posix(), font_size)
     bbox = font.getbbox(text)
     bbox = np.asarray(bbox, dtype=int).tolist()
     text_width = bbox[2] - bbox[0]
