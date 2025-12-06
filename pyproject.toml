@@ -1,6 +1,6 @@
 [project]
 name = "pycvt"
-version = "0.0.1-10"
+version = "0.0.1-11"
 authors = [
   { name = "ferretsprite", email = "ferret-sprite-goon@duck.com" }
 ]
