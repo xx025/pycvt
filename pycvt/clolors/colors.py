@@ -54,24 +54,29 @@ def getcolor(key="default", rng=_rng, use_preset=True):
 
 if __name__ == "__main__":
     # 测试代码
-    keys = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape"]
-    for key in keys:
-        color = getcolor(key)
-        print(f"Key: {key}, Color: {color}")
-    
-    for key in keys:
-        color = getcolor(key,use_preset=False)
-        print(f"Key: {key}, Color: {color}")
-        
-    # 使用 pltlot 显示颜色
+    keys = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape"]       
     import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(8, 2))
-    for i, key in enumerate(keys):
-        color = getcolor(key)
-        ax.add_patch(plt.Rectangle((i, 0), 1, 1, color=[c / 255.0 for c in color]))
-        ax.text(i + 0.5, 0.5, key, ha='center', va='center', color='black' if sum(color) > 382 else 'white')
-    ax.set_xlim(0, len(keys))
-    ax.set_ylim(0, 1)
     
+    # 测试 use_preset=True
+    fig, ax = plt.subplots(figsize=(10, 3))
+    for i, key in enumerate(keys):
+        color = getcolor(key, use_preset=True)
+        ax.add_patch(plt.Rectangle((i, 1), 1, 1, color=[c / 255.0 for c in color]))
+        ax.text(i + 0.5, 1.5, key, ha='center', va='center', fontsize=8)
+    
+    _colors_map = {}
+    # 测试 use_preset=False
+    for i, key in enumerate(keys):
+        color = getcolor(key, use_preset=False)
+        ax.add_patch(plt.Rectangle((i, 0), 1, 1, color=[c / 255.0 for c in color]))
+        ax.text(i + 0.5, 0.5, key, ha='center', va='center', fontsize=8, color='black' if sum(color) > 382 else 'white')
+    
+    ax.set_xlim(0, len(keys))
+    ax.set_ylim(0, 2)
+    ax.text(-0.5, 1.5, "use_preset=True", ha='right', va='center', fontsize=10, weight='bold')
+    ax.text(-0.5, 0.5, "use_preset=False", ha='right', va='center', fontsize=10, weight='bold')
+    
+    bg_color = getcolor("background")
+    fig.patch.set_facecolor([c / 255.0 for c in bg_color])
     plt.axis('off')
     plt.show()
