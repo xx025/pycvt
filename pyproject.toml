@@ -19,9 +19,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/xx025/pycvt"
-Repository = "https://github.com/xx025/pycvt"
-Documentation = "https://github.com/xx025/pycvt#readme"
+Homepage = "https://github.com/"
+Repository = "https://github.com/"
+Documentation = "https://github.com/"
 
 [tool.uv]
 index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
