@@ -1,5 +1,5 @@
-import cv2
 import numpy as np
+
 
 def generate_sliding_windows(im_shape, ws=(800, 800), s=None):
     im_h, im_w = im_shape[:2]
@@ -38,3 +38,93 @@ def sliding_crop(image, ws=(800, 800), s=None):
         for (x1, y1, x2, y2) in coords
     ]
     return crops, coords
+
+
+def box_iou(boxes1, boxes2):
+    """
+    计算两个 box 集合的 IoU（交并比），完全用 numpy 实现。
+    Args:
+        boxes1 (np.ndarray): [N, 4]，格式为 (x1, y1, x2, y2)
+        boxes2 (np.ndarray): [M, 4]，格式为 (x1, y1, x2, y2)
+    Returns:
+        iou (np.ndarray): [N, M]，每个 box1 和每个 box2 的 IoU
+    """
+    boxes1 = np.asarray(boxes1)
+    boxes2 = np.asarray(boxes2)
+    N = boxes1.shape[0]
+    M = boxes2.shape[0]
+
+    # 计算交集左上和右下坐标
+    lt = np.maximum(boxes1[:, None, :2], boxes2[None, :, :2])  # [N, M, 2]
+    rb = np.minimum(boxes1[:, None, 2:], boxes2[None, :, 2:])  # [N, M, 2]
+
+    wh = np.clip(rb - lt, a_min=0, a_max=None)  # [N, M, 2]
+    inter = wh[..., 0] * wh[..., 1]  # [N, M]
+
+    area1 = (boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1])  # [N]
+    area2 = (boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1])  # [M]
+
+    union = area1[:, None] + area2[None, :] - inter
+    iou = inter / (union + 1e-7)
+    return iou
+
+
+def xyxy2xywhn(x, w: int = 640, h: int = 640,safe: bool = True):
+    """
+    Convert bounding boxes from (x1, y1, x2, y2) format to 
+    normalized (x_center, y_center, width, height) format.
+    """
+    y = np.empty_like(x, dtype=float)
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = ((x1 + x2) / 2) / w  # x center
+    y[..., 1] = ((y1 + y2) / 2) / h  # y center
+    y[..., 2] = (x2 - x1) / w  # width
+    y[..., 3] = (y2 - y1) / h  # height
+    if safe:
+        y = np.clip(y, 0.0, 1.0)
+    return y
+
+def xywhn2xyxy(x, w: int = 640, h: int = 640,safe: bool = True):
+    """
+    Convert bounding boxes from normalized (x_center, y_center, width, height) format 
+    to (x1, y1, x2, y2) format.
+    """
+    y = np.empty_like(x, dtype=float)
+    x_c, y_c, bw, bh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = (x_c - bw / 2) * w  # x1
+    y[..., 1] = (y_c - bh / 2) * h  # y1
+    y[..., 2] = (x_c + bw / 2) * w  # x2
+    y[..., 3] = (y_c + bh / 2) * h  # y2
+    if safe:
+        y[..., 0] = np.clip(y[..., 0], 0, w)
+        y[..., 1] = np.clip(y[..., 1], 0, h)
+        y[..., 2] = np.clip(y[..., 2], 0, w)
+        y[..., 3] = np.clip(y[..., 3], 0, h)
+    return y
+
+
+def xyxy2xywh(x):
+    """
+    Convert bounding boxes from (x1, y1, x2, y2) format to 
+    (x_center, y_center, width, height) format.
+    """
+    y = np.empty_like(x, dtype=float)
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = (x1 + x2) / 2  # x center
+    y[..., 1] = (y1 + y2) / 2  # y center
+    y[..., 2] = x2 - x1  # width
+    y[..., 3] = y2 - y1  # height
+    return y
+
+def xywh2xyxy(x):
+    """
+    Convert bounding boxes from (x_center, y_center, width, height) format 
+    to (x1, y1, x2, y2) format.
+    """
+    y = np.empty_like(x, dtype=float)
+    x_c, y_c, bw, bh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = x_c - bw / 2  # x1
+    y[..., 1] = y_c - bh / 2  # y1
+    y[..., 2] = x_c + bw / 2  # x2
+    y[..., 3] = y_c + bh / 2  # y2
+    return y
