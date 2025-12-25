@@ -361,7 +361,7 @@ wheels = [
 
 [[package]]
 name = "pycvt"
-version = "0.0.1.post11"
+version = "0.0.1.post202512252216"
 source = { virtual = "." }
 dependencies = [
     { name = "distinctipy" },

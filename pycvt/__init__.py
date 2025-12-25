@@ -6,6 +6,7 @@ basepath = files("pycvt")
 from .annotations.yolo import (
     load_yolo_annotations,
     save_yolo_annotations,
+    load_yolo_names,
 )
 
 
@@ -33,6 +34,7 @@ from .clolors.colors import (
 __all__ = [
     "load_yolo_annotations",
     "save_yolo_annotations",
+    "load_yolo_names",
     "draw_bounding_boxes",
     "xyxy2xywh",
     "xywh2xyxy",

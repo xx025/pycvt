@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 
 
@@ -13,7 +14,21 @@ def parase_yolo_line(line):
     return class_id, [x_center, y_center, width, height], segs
 
 
-def load_yolo_annotations(file_path):
+def load_yolo_annotations(file_path) -> tuple[np.ndarray, np.ndarray, list]:
+    """
+    Load YOLO annotations from a text file.
+    Each line in the file should be in the format:
+
+    <class_id> <x_center> <y_center> <width> <height> [<segmentation_points>...]
+    where coordinates are normalized between 0 and 1.
+    Args:
+        file_path (str): Path to the YOLO annotation text file.
+    Returns:
+        tuple: A tuple containing:
+            - cls (np.ndarray): Array of class IDs.
+            - bboxes (np.ndarray): Array of bounding boxes in the format [x_center, y_center, width, height].
+            - segs (list): List of segmentation points for each object.
+    """
     cls = []
     bboxes = []
     segs = []
@@ -43,6 +58,15 @@ def save_yolo_annotations(file_path, cls, bboxes, segs=None):
             file.write(line + "\n")
 
 
+def load_yolo_names(names_path):
+    names_map = {}
+    with open(names_path, "r") as file:
+        lines = file.readlines()
+        for idx, line in enumerate(lines):
+            names_map[idx] = line.strip()
+    return names_map
+
+
 if __name__ == "__main__":
     path = "/mnt/d/workspace/pycvt/scripts/coco8/labels/train/000000000009.txt"
     cls, bbox = load_yolo_annotations(path)[:2]
@@ -51,7 +75,7 @@ if __name__ == "__main__":
     save_path = "/mnt/d/workspace/pycvt/scripts/coco8/000000000009_out.txt"
     import torch
 
-    cls= torch.from_numpy(cls)
+    cls = torch.from_numpy(cls)
     bbox = torch.from_numpy(bbox)
     save_yolo_annotations(save_path, cls, bbox)
     print(f"Saved annotations to {save_path}")

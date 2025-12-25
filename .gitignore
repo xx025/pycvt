@@ -12,3 +12,5 @@ wheels/
 /.results/
 /static/
 /.idea/
+test/
+test_out.jpg
