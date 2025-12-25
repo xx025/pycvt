@@ -29,3 +29,12 @@ def generate_sliding_windows(im_shape, ws=(800, 800), s=None):
     windows = np.stack([x1, y1, x2, y2], axis=1)
 
     return windows
+
+def sliding_crop(image, ws=(800, 800), s=None):
+    coords = generate_sliding_windows(image.shape, ws=ws, s=s)
+
+    crops = [
+        image[y1:y2, x1:x2]
+        for (x1, y1, x2, y2) in coords
+    ]
+    return crops, coords
