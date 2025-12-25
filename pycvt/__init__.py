@@ -1,7 +1,9 @@
 from importlib.resources import files
+from pathlib import Path
 
 basepath = files("pycvt")
 
+test_file = Path(basepath) / "static/pexels-dsengul77-32423632.jpg"
 
 from .annotations.yolo import (
     load_yolo_annotations,
@@ -44,4 +46,5 @@ __all__ = [
     "generate_sliding_windows",
     "sliding_crop",
     "getcolor",
+    "test_file",
 ]
