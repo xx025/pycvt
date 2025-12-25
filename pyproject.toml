@@ -1,11 +1,11 @@
 [project]
 name = "pycvt"
-version = "0.0.1-202512252301"
+version = "0.0.1-202512252321"
 authors = [
   { name = "ferretsprite", email = "ferret-sprite-goon@duck.com" }
 ]
 
-description = "A lightweight Python toolkit for seamless image composition, color processing, and visualizing detection results."
+description = "pycvt is a Python package designed for computer vision utilities, including YOLO annotation handling, image manipulation, bounding box plotting, and data conversion tools."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
