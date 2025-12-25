@@ -1,8 +1,9 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]  # 触发时机：点击 GitHub 的发布按钮
+  push:
+    paths:
+      - "pyproject.toml"
 
 jobs:
   publish:
