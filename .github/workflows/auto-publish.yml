@@ -9,9 +9,6 @@ jobs:
   publish:
     name: Build and publish using uv
     runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write  # 必须开启以使用 OIDC 信任认证
 
     steps:
       - uses: actions/checkout@v4
