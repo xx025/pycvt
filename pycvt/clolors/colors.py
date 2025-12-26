@@ -28,7 +28,7 @@ _colors_map = {}
 _rng = random.Random("default")
 
 
-def getcolor(key="default", rng=_rng, use_preset=True):
+def get_color(key="default", rng=_rng, use_preset=True):
     if key in _colors_map:
         color = _colors_map[key]
     else:
@@ -51,6 +51,18 @@ def getcolor(key="default", rng=_rng, use_preset=True):
 
         _colors_map[key] = color
     return get_rgb256(color)
+
+
+def getcolor(*args, **kwargs):
+    import warnings
+    warnings.warn(
+        "'getcolor' is deprecated, use 'get_color' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_color(*args, **kwargs)
+
+
 
 if __name__ == "__main__":
     # 测试代码

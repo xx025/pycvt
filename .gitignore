@@ -14,3 +14,5 @@ wheels/
 /.idea/
 test/
 test_out.jpg
+output_scaled_boxes.jpg
+output_scaled_boxes.png

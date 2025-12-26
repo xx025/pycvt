@@ -25,11 +25,13 @@ from .vision.bbox import (
     box_iou,
     generate_sliding_windows,
     sliding_crop,
+    scale_boxes,
 )
 
 
 from .clolors.colors import (
-    getcolor,
+    getcolor, # deprecated, use get_color instead
+    get_color
 )
 
 
@@ -45,6 +47,8 @@ __all__ = [
     "box_iou",
     "generate_sliding_windows",
     "sliding_crop",
+    "scale_boxes",
     "getcolor",
+    "get_color",
     "test_file",
 ]

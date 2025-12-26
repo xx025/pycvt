@@ -141,7 +141,7 @@ def crop_with_bbox(
         xyxy (_type_): _description_
         save_empty_crop (bool, optional): _description_. Defaults to False.
         min_area_ratio (float, optional): _description_. Defaults to 0.001.
-        
+
     Yields:
         _type_: _description_
     Args:
@@ -150,7 +150,7 @@ def crop_with_bbox(
                               in (x1, y1, x2, y2) format.
         xyxy (np.ndarray): An array of shape (N, 4) containing bounding boxes in (x1, y1, x2, y2) format.
         cls (np.ndarray): An array of shape (N,) containing class labels for each bounding box.
-        save_empty_crop (bool, optional): Whether to yield crops with no bounding boxes. Defaults to False. 
+        save_empty_crop (bool, optional): Whether to yield crops with no bounding boxes. Defaults to False.
         min_area_ratio (float, optional): Minimum area ratio of the bounding box to be kept after cropping. Defaults to 0.001.
     Yields:
         tuple: A tuple containing the cropped image and an array of adjusted bounding boxes in the format
@@ -189,3 +189,35 @@ def crop_with_bbox(
         keep_xyxy = keep_xyxy[area_mask]
         keep_cls = cls[mask][area_mask]
         yield sub_im, np.hstack([keep_cls.reshape(-1, 1), keep_xyxy]).astype(np.float32)
+
+
+def scale_boxes(xyxy, scale, scale_x=None, scale_y=None, shape=None,dtype=float):
+    """按比例缩放边界框。
+
+    Args:
+        x (np.ndarray): 形状为 (N, 4) 的边界框数组，格式为 (x1, y1, x2, y2)。
+        scale (float): 缩放因子。
+        scale_x (float, optional): x 方向的缩放因子。如果未提供，则使用 `scale`。默认值为 None。
+        scale_y (float, optional): y 方向的缩放因子。如果未提供，则使用 `scale`。默认值为 None。
+        shape (tuple, optional): 图像的形状 (height, width)。如果提供，缩放后的边界框将被裁剪以适应图像边界。默认值为 None。
+    Returns:
+        np.ndarray: 缩放后的边界框，格式为 (x1, y1, x2, y2)。
+    """
+
+    if scale_x is None:
+        scale_x = scale
+    if scale_y is None:
+        scale_y = scale
+
+    xyxy = np.asarray(xyxy, dtype=float)
+    xywh = xyxy2xywh(xyxy)
+
+    xywh[..., 2] = xywh[..., 2] * scale_x
+    xywh[..., 3] = xywh[..., 3] * scale_y
+
+    xyxy = xywh2xyxy(xywh)
+
+    if shape is not None:
+        h, w = shape[:2]
+        xyxy = np.clip(xyxy, [0, 0, 0, 0], [w, h, w, h])
+    return xyxy.astype(dtype)
