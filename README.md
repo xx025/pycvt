@@ -27,6 +27,7 @@ from pycvt import (
     xywhn2xyxy,
     box_iou,
     generate_sliding_windows,
+    crop_with_bbox,
     sliding_crop,
     scale_boxes,
     get_color,
@@ -43,6 +44,7 @@ from pycvt import (
 "xywhn2xyxy",           # convert bounding box from normalized (x_center, y_center, width, height) to (x1, y1, x2, y2)
 "box_iou",              # calculate Intersection over Union (IoU) between two sets of boxes
 "generate_sliding_windows",  # generate sliding window coordinates for an image
+"crop_with_bbox",         # crop image regions with bounding boxes and adjust boxes accordingly
 "sliding_crop",         # crop an image using sliding windows
 "scale_boxes",          # scale bounding boxes by a factor
 "get_color",             # get a color for a given class id

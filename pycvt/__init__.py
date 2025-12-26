@@ -24,6 +24,7 @@ from .vision.bbox import (
     xywhn2xyxy,
     box_iou,
     generate_sliding_windows,
+    crop_with_bbox,
     sliding_crop,
     scale_boxes,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "box_iou",
     "generate_sliding_windows",
     "sliding_crop",
+    "crop_with_bbox",
     "scale_boxes",
     "getcolor",
     "get_color",
