@@ -31,7 +31,7 @@ from pycvt import (
     sliding_crop,
     scale_boxes,
     get_color,
-    test_file,
+    example_file,
 )
 
 "load_yolo_annotations", # to load yolo format annotations from a file
@@ -48,7 +48,7 @@ from pycvt import (
 "sliding_crop",         # crop an image using sliding windows
 "scale_boxes",          # scale bounding boxes by a factor
 "get_color",             # get a color for a given class id
-"test_file",            # one test file for testing purposes  
+"example_file",            # one example file for testing purposes  
 
 
 ```
