@@ -28,7 +28,8 @@ from pycvt import (
     box_iou,
     generate_sliding_windows,
     sliding_crop,
-    getcolor,
+    scale_boxes,
+    get_color,
     test_file,
 )
 
@@ -43,7 +44,8 @@ from pycvt import (
 "box_iou",              # calculate Intersection over Union (IoU) between two sets of boxes
 "generate_sliding_windows",  # generate sliding window coordinates for an image
 "sliding_crop",         # crop an image using sliding windows
-"getcolor",             # get a color for a given class id
+"scale_boxes",          # scale bounding boxes by a factor
+"get_color",             # get a color for a given class id
 "test_file",            # one test file for testing purposes  
 
 
