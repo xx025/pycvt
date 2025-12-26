@@ -30,13 +30,11 @@ def generate_sliding_windows(im_shape, ws=(800, 800), s=None):
 
     return windows
 
+
 def sliding_crop(image, ws=(800, 800), s=None):
     coords = generate_sliding_windows(image.shape, ws=ws, s=s)
 
-    crops = [
-        image[y1:y2, x1:x2]
-        for (x1, y1, x2, y2) in coords
-    ]
+    crops = [image[y1:y2, x1:x2] for (x1, y1, x2, y2) in coords]
     return crops, coords
 
 
@@ -69,9 +67,9 @@ def box_iou(boxes1, boxes2):
     return iou
 
 
-def xyxy2xywhn(x, w: int = 640, h: int = 640,safe: bool = True):
+def xyxy2xywhn(x, w: int = 640, h: int = 640, safe: bool = True):
     """
-    Convert bounding boxes from (x1, y1, x2, y2) format to 
+    Convert bounding boxes from (x1, y1, x2, y2) format to
     normalized (x_center, y_center, width, height) format.
     """
     y = np.empty_like(x, dtype=float)
@@ -84,9 +82,10 @@ def xyxy2xywhn(x, w: int = 640, h: int = 640,safe: bool = True):
         y = np.clip(y, 0.0, 1.0)
     return y
 
-def xywhn2xyxy(x, w: int = 640, h: int = 640,safe: bool = True):
+
+def xywhn2xyxy(x, w: int = 640, h: int = 640, safe: bool = True):
     """
-    Convert bounding boxes from normalized (x_center, y_center, width, height) format 
+    Convert bounding boxes from normalized (x_center, y_center, width, height) format
     to (x1, y1, x2, y2) format.
     """
     y = np.empty_like(x, dtype=float)
@@ -105,7 +104,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640,safe: bool = True):
 
 def xyxy2xywh(x):
     """
-    Convert bounding boxes from (x1, y1, x2, y2) format to 
+    Convert bounding boxes from (x1, y1, x2, y2) format to
     (x_center, y_center, width, height) format.
     """
     y = np.empty_like(x, dtype=float)
@@ -116,9 +115,10 @@ def xyxy2xywh(x):
     y[..., 3] = y2 - y1  # height
     return y
 
+
 def xywh2xyxy(x):
     """
-    Convert bounding boxes from (x_center, y_center, width, height) format 
+    Convert bounding boxes from (x_center, y_center, width, height) format
     to (x1, y1, x2, y2) format.
     """
     y = np.empty_like(x, dtype=float)
@@ -128,3 +128,64 @@ def xywh2xyxy(x):
     y[..., 2] = x_c + bw / 2  # x2
     y[..., 3] = y_c + bh / 2  # y2
     return y
+
+
+def crop_with_bbox(
+    image, windows, xyxy, cls, save_empty_crop=False, min_area_ratio=0.001
+):
+    """Crop image regions defined by windows and adjust bounding boxes accordingly.
+
+    Args:
+        image (_type_): _description_
+        windows (_type_): _description_
+        xyxy (_type_): _description_
+        save_empty_crop (bool, optional): _description_. Defaults to False.
+        min_area_ratio (float, optional): _description_. Defaults to 0.001.
+        
+    Yields:
+        _type_: _description_
+    Args:
+        image (np.ndarray): The original image from which to crop.
+        windows (np.ndarray): An array of shape (M, 4) defining the cropping windows
+                              in (x1, y1, x2, y2) format.
+        xyxy (np.ndarray): An array of shape (N, 4) containing bounding boxes in (x1, y1, x2, y2) format.
+        cls (np.ndarray): An array of shape (N,) containing class labels for each bounding box.
+        save_empty_crop (bool, optional): Whether to yield crops with no bounding boxes. Defaults to False. 
+        min_area_ratio (float, optional): Minimum area ratio of the bounding box to be kept after cropping. Defaults to 0.001.
+    Yields:
+        tuple: A tuple containing the cropped image and an array of adjusted bounding boxes in the format
+               (class, x1, y1, x2, y2).
+    """
+
+    def return_empty_crop(sub_im):
+        return sub_im, np.zeros((0, 5), dtype=np.float32)
+
+    ious = box_iou(xyxy, windows)
+    crop_imgs = [image[y1:y2, x1:x2] for (x1, y1, x2, y2) in windows]
+    original_areas = (xyxy[:, 2] - xyxy[:, 0]) * (xyxy[:, 3] - xyxy[:, 1])
+    for idx, window in enumerate(windows):
+        mask = ious[:, idx] > 0.0
+        x1, y1, x2, y2 = window
+        sub_im = crop_imgs[idx]
+        keep_xyxy = xyxy[mask].copy()
+
+        if len(keep_xyxy) == 0:
+            if save_empty_crop:
+                yield return_empty_crop(sub_im)
+            continue
+
+        keep_xyxy = np.clip(keep_xyxy, [x1, y1, x1, y1], [x2, y2, x2, y2])
+        keep_xyxy -= np.array([x1, y1, x1, y1])
+        sub_box_areas = (keep_xyxy[:, 2] - keep_xyxy[:, 0]) * (
+            keep_xyxy[:, 3] - keep_xyxy[:, 1]
+        )
+        keep_original_areas = original_areas[mask]
+        keep_area_ratios = sub_box_areas / keep_original_areas
+        area_mask = keep_area_ratios >= min_area_ratio
+        if not np.any(area_mask):
+            if save_empty_crop:
+                yield return_empty_crop(sub_im)
+            continue
+        keep_xyxy = keep_xyxy[area_mask]
+        keep_cls = cls[mask][area_mask]
+        yield sub_im, np.hstack([keep_cls.reshape(-1, 1), keep_xyxy]).astype(np.float32)
