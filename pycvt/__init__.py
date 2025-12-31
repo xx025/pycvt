@@ -35,6 +35,9 @@ from .clolors.colors import (
     get_color
 )
 
+from .paster.paste_image import (
+    overlay_masks
+)
 
 __all__ = [
     "load_yolo_annotations",
@@ -52,5 +55,6 @@ __all__ = [
     "scale_boxes",
     "getcolor",
     "get_color",
+    "overlay_masks",
     "example_file",
 ]

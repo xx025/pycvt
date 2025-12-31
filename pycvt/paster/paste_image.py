@@ -53,3 +53,20 @@ def paste_image(
     )
     blended = cv2.cvtColor(blended_bgr, cv2.COLOR_BGR2RGB)
     return blended, (xmin, ymin, xmax, ymax)
+
+
+def overlay_masks(image, masks, alpha=0.4, color=(0, 255, 0)):
+    """
+    image: (H,W,3) uint8 RGB
+    masks: (N,H,W) bool or 0/1
+    color: RGB tuple
+    """
+    if masks is None or len(masks) == 0:
+        return image
+    
+    h, w = image.shape[:2]
+    masks = masks.astype(bool)
+    overlay = np.zeros((h, w, 3), dtype=np.uint8)
+    overlay[masks.any(0)] = color 
+    im = (image * (1 - alpha) + overlay * alpha).astype(np.uint8)
+    return im
