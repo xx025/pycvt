@@ -15,20 +15,19 @@ def get_text_positions(xmin, ymin, xmax, ymax, text_w, text_h, w, h, margin=2):
     返回按优先级排序的 (x, y) 列表
     """
     positions = []
-
-    # 下方
-    y = ymax + margin
-    if y + text_h <= h:
-        positions.append((xmin, y))
-        positions.append((xmax - text_w, y))  # 右对齐
-        positions.append((xmin + (xmax - xmin)//2 - text_w//2, y))  # 居中
-
     # 上方
     y = ymin - text_h - margin
     if y >= 0:
         positions.append((xmin, y))
         positions.append((xmax - text_w, y))
         positions.append((xmin + (xmax - xmin)//2 - text_w//2, y))
+    
+    # 下方
+    y = ymax + margin
+    if y + text_h <= h:
+        positions.append((xmin, y))
+        positions.append((xmax - text_w, y))  # 右对齐
+        positions.append((xmin + (xmax - xmin)//2 - text_w//2, y))  # 居中
 
     # 左侧
     x = xmin - text_w - margin
@@ -61,15 +60,12 @@ def draw_bounding_boxes(
     h, w = image.shape[:2]
     boxes = np.asarray(boxes, dtype=int)
     n = len(boxes)
-    line_width = line_width if line_width else max(int(0.003 * min(w, h)), 2)
-    font_size = font_size if font_size else line_width * 6
+    line_width = line_width if line_width else max(int(0.002 * min(w, h)), 2)
+    font_size = font_size if font_size else line_width * 7
     font = font if font else getfont()
 
     if colors is None:
-        if labels:
-            colors = np.array([getcolor(label) for label in labels])
-        else:
-            colors = np.array([getcolor()] * n)
+        colors= [(255, 0, 0)] * n
     labels = labels if labels else [None] * n
     boxes_colors = np.asarray(colors, dtype=int)
 
@@ -89,3 +85,23 @@ def draw_bounding_boxes(
     return image
 
 
+
+
+if __name__ == "__main__":
+    # 测试代码
+    import matplotlib.pyplot as plt
+
+    image = np.ones((400, 600, 3), dtype=np.uint8) * 255
+    boxes = [
+        [50, 50, 200, 200],
+        [300, 100, 500, 300],
+        [100, 250, 250, 350],
+    ]
+    labels = ["Object A", "Object B", "Object C"]
+    colors = [getcolor("red"), getcolor("green"), getcolor("blue")]
+
+    image_with_boxes = draw_bounding_boxes(image, boxes, labels, colors)
+
+    plt.imshow(image_with_boxes)
+    plt.axis('off')
+    plt.show()
