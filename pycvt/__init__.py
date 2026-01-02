@@ -9,6 +9,7 @@ from .annotations.yolo import (
     load_yolo_annotations,
     save_yolo_annotations,
     load_yolo_names,
+    save_inference_results
 )
 
 
@@ -43,6 +44,7 @@ __all__ = [
     "load_yolo_annotations",
     "save_yolo_annotations",
     "load_yolo_names",
+    "save_inference_results",
     "draw_bounding_boxes",
     "xyxy2xywh",
     "xywh2xyxy",
