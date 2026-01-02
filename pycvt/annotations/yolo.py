@@ -1,5 +1,11 @@
+import os
 from pathlib import Path
+import shutil
 import numpy as np
+import imageio.v3 as iio
+from typing import Any
+from pycvt.vision.bbox import xyxy2xywhn
+from pycvt.vision.plot_boxes import draw_bounding_boxes
 
 
 def parase_yolo_line(line):
@@ -65,6 +71,59 @@ def load_yolo_names(names_path):
         for idx, line in enumerate(lines):
             names_map[idx] = line.strip()
     return names_map
+
+
+
+def save_inference_results(
+    save_stem: str,
+    image: Any,
+    image_path: Path,
+    pred: Any,
+    save_txt: bool,
+    save_plot: bool,
+    save_source: bool,
+    save_dir: Path,
+    save_txt_dir: Path = None,
+    save_plot_dir: Path = None,
+    save_source_dir: Path = None,
+):
+    save_txt_dir = save_txt_dir or save_dir / "labels"
+    save_plot_dir = save_plot_dir or save_dir / "plot"
+    save_source_dir = save_source_dir or save_dir / "source"
+
+    cls = pred[:, 5]
+    boxes = pred[:, :4]
+    scores = pred[:, 4]
+
+    if save_txt:
+        save_txt_dir.mkdir(parents=True, exist_ok=True)
+        xywhn_boxes = xyxy2xywhn(boxes, image.shape[1], image.shape[0])
+        save_yolo_annotations(
+            file_path=save_txt_dir / f"{save_stem}.txt",
+            cls=cls,
+            bboxes=xywhn_boxes,
+        )
+    if save_plot:
+        save_plot_dir.mkdir(parents=True, exist_ok=True)
+        plot_img = draw_bounding_boxes(
+            image=image,
+            boxes=boxes.astype(int),
+            labels=[f"{int(c)} {s:.2f}" for c, s in zip(cls, scores)],
+            line_width=2,
+        )
+        iio.imwrite(
+            (save_plot_dir / f"{save_stem}.jpg").as_posix(), plot_img, quality=95
+        )
+    if save_source:
+        save_source_dir.mkdir(parents=True, exist_ok=True)
+        source_path = save_source_dir / f"{save_stem}.jpg"
+        if not source_path.exists():
+            try:
+                os.link(image_path.as_posix(), source_path.as_posix())
+            except Exception:
+                shutil.copyfile(image_path.as_posix(), source_path.as_posix())
+
+
 
 
 if __name__ == "__main__":
