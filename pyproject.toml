@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pycvt"
-version = "0.0.1-202606050005"
+version = "0.0.1-202606050006"
 authors = [
   { name = "ferretsprite", email = "ferret-sprite-goon@duck.com" }
 ]

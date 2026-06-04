@@ -86,29 +86,33 @@ def collect_images(source: str | Path) -> list[Path]:
 
 def image_to_prediction_label_path(
     image_path: str | Path,
-    dataset_root: str | Path,
     run: str,
     prediction_root: str = "predictions",
 ) -> Path:
-    """Map a YOLO image path to its prediction label path.
+    """Map image path to prediction label path.
 
-    This follows the usual YOLO image->label mapping shape, but inserts an
-    extra ``run`` level so predictions from multiple models can coexist:
+    Same idea as YOLO dataset loading:
+        images -> labels
 
-    ``images/val/a.jpg -> {prediction_root}/{run}/val/a.txt``
+    Here:
+        images -> prediction_root/run
     """
     image_file = Path(image_path).resolve()
-    root = Path(dataset_root).resolve()
+    parts = image_file.parts
 
-    rel = image_file.relative_to(root)
-    parts = rel.parts
     if "images" not in parts:
         raise ValueError(f"image path does not contain an 'images' directory: {image_file}")
 
+    # YOLO 数据集里通常只有一个 images；
+    # 用最后一个更安全，避免上层目录名也叫 images。
     idx = len(parts) - 1 - parts[::-1].index("images")
-    label_rel = Path(prediction_root) / run / Path(*parts[idx + 1 :])
-    return (root / label_rel).with_suffix(".txt")
 
+    return Path(
+        *parts[:idx],
+        prediction_root,
+        run,
+        *parts[idx + 1:],
+    ).with_suffix(".txt")
 
 def ensure_detection_array(detections: Any) -> np.ndarray:
     output = np.asarray(detections, dtype=np.float32)
@@ -212,7 +216,6 @@ def run_prediction_task(
     classes = detections[:, 5].astype(int)
     txt_path = image_to_prediction_label_path(
         image_path=image_file,
-        dataset_root=dataset_root,
         run=run_name,
         prediction_root=prediction_root,
     )
