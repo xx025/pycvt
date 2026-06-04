@@ -52,3 +52,48 @@ from pycvt import (
 
 
 ```
+
+## YOLO Predict CLI
+
+集成后的数据集预测工具可以直接通过 `pycvt` 使用：
+
+```bash
+pip install -e .[yolo-predict]
+pycvt-yolo-predict --config demo.yaml
+```
+
+也可以在代码里调用：
+
+```python
+from pycvt.tools.predict_config import load_predict_config
+from pycvt.tools.yolo_dataset import predict_dataset
+
+config = load_predict_config("demo.yaml")
+predict_dataset(config, "demo.yaml")
+```
+
+配置格式示例：
+
+```yaml
+dataset: /path/to/dataset.yaml
+
+prediction_store:
+  root: predictions
+  run: xxx-model
+  plot: true
+
+model:
+  name: yolov8det
+  weights: /models/xxx-model.torchscript
+  conf: 0.25
+  iou: 0.45
+  classes: null
+  imgsz: 640
+  half: true
+  nc: null
+
+ray:
+  num_actors: null
+  num_cpus: 2.0
+  gpus_per_actor: 0.25
+```

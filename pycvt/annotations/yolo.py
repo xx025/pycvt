@@ -16,48 +16,70 @@ def parase_yolo_line(line):
     y_center = float(parts[2])
     width = float(parts[3])
     height = float(parts[4])
-    segs = [float(p) for p in parts[5:]]
-    return class_id, [x_center, y_center, width, height], segs
+    extras = [float(p) for p in parts[5:]]
+
+    conf = None
+    segs = []
+    if len(extras) == 1:
+        conf = extras[0]
+    elif len(extras) > 1:
+        segs = extras
+
+    return class_id, [x_center, y_center, width, height], segs, conf
 
 
-def load_yolo_annotations(file_path) -> tuple[np.ndarray, np.ndarray, list]:
+def load_yolo_annotations(
+    file_path, return_confs: bool = False
+) -> tuple[np.ndarray, np.ndarray, list] | tuple[np.ndarray, np.ndarray, list, np.ndarray]:
     """
     Load YOLO annotations from a text file.
     Each line in the file should be in the format:
 
-    <class_id> <x_center> <y_center> <width> <height> [<segmentation_points>...]
+    <class_id> <x_center> <y_center> <width> <height> [<confidence>|<segmentation_points>...]
     where coordinates are normalized between 0 and 1.
     Args:
         file_path (str): Path to the YOLO annotation text file.
+        return_confs (bool): Whether to also return confidence scores.
     Returns:
         tuple: A tuple containing:
             - cls (np.ndarray): Array of class IDs.
             - bboxes (np.ndarray): Array of bounding boxes in the format [x_center, y_center, width, height].
             - segs (list): List of segmentation points for each object.
+            - confs (np.ndarray): Optional confidence array. Missing values are stored as np.nan.
     """
     cls = []
     bboxes = []
     segs = []
+    confs = []
     with open(file_path, "r") as file:
         lines = file.readlines()
         for line in lines:
-            class_id, bbox, seg = parase_yolo_line(line)
+            class_id, bbox, seg, conf = parase_yolo_line(line)
             cls.append(class_id)
             bboxes.append(bbox)
             segs.append(seg)
-    return np.array(cls, dtype=int), np.array(bboxes, dtype=float), segs
+            confs.append(np.nan if conf is None else conf)
+
+    cls_array = np.array(cls, dtype=int)
+    bboxes_array = np.array(bboxes, dtype=float)
+    if return_confs:
+        return cls_array, bboxes_array, segs, np.array(confs, dtype=float)
+    return cls_array, bboxes_array, segs
 
 
-def save_yolo_annotations(file_path, cls, bboxes, segs=None):
+def save_yolo_annotations(file_path, cls, bboxes, segs=None, confs=None):
 
     cls = np.asarray(cls, dtype=int)
     bboxes = np.asarray(bboxes, dtype=float)
+    confs = None if confs is None else np.asarray(confs, dtype=float).reshape(-1)
 
     with open(file_path, "w") as file:
         for i in range(len(cls)):
             line = (
                 f"{cls[i]} {bboxes[i][0]} {bboxes[i][1]} {bboxes[i][2]} {bboxes[i][3]}"
             )
+            if confs is not None and len(confs) > i:
+                line += f" {confs[i]}"
             if segs is not None and len(segs) > i:
                 seg_str = " ".join(map(str, segs[i]))
                 line += f" {seg_str}"
@@ -102,6 +124,7 @@ def save_inference_results(
             file_path=save_txt_dir / f"{save_stem}.txt",
             cls=cls,
             bboxes=xywhn_boxes,
+            # confs=scores,  # 
         )
     if save_plot:
         save_plot_dir.mkdir(parents=True, exist_ok=True)
