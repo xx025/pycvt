@@ -1,6 +1,6 @@
 # yolo-pred
 
-`yolo-pred` 是 `pycvt` 里的 YOLO 数据集预测工具。它使用 `cvmd` 加载模型，使用 Ray actor 并行推理，并把结果按 YOLO 风格保存回数据集目录。
+`yolo-pred` 是 `pycvt` 里的 YOLO 数据集预测工具。它使用 `cvmd` 加载模型，使用 Ray actor 并行推理，并把预测标签按 YOLO 风格保存回数据集目录。
 
 ## 命令
 
@@ -16,7 +16,7 @@ pycvt-yolo-predict --config configs/predict.yaml
 
 ## 依赖
 
-运行这个工具至少需要：
+这个工具的可选依赖包括：
 
 - `cvmd`
 - `ray`
@@ -69,7 +69,7 @@ ray:
 - `model.imgsz`: 推理尺寸
 - `model.half`: 是否使用 FP16
 - `model.nc`: 类别数
-- `ray.num_actors`: actor 数量，`null` 表示按 GPU 资源自动推断
+- `ray.num_actors`: actor 数量，`null` 时交给 `cvmd.utils.ray_infer` 的默认行为处理
 - `ray.num_cpus`: 每个 actor 使用的 CPU 数
 - `ray.gpus_per_actor`: 每个 actor 使用的 GPU 数
 
@@ -105,16 +105,17 @@ data/coco128/images/train2017/0001.jpg
 -> data/coco128/predictions/yolov8m-ts-640/train2017/0001.txt
 ```
 
+保存的每一行格式为：
+
+```text
+<class_id> <x_center> <y_center> <width> <height> <conf>
+```
+
 ## GPU 行为
 
-这个工具不再从配置里显式写 `device: cuda:0`。
+这个工具不需要在配置里单独指定 `device`。
 
-当前逻辑是：
-
-- Ray 给 actor 分到 GPU 时，actor 自动使用 `cuda`
-- 没分到 GPU 时，actor 回退为 `cpu`
-
-所以设备选择由 Ray 资源分配决定，而不是由配置文件强行指定。
+如果 Ray 分配到了 GPU，就会使用 GPU 推理；如果当前运行环境没有可用 GPU，则会回退到 CPU。
 
 ## 进度与错误处理
 
@@ -148,6 +149,6 @@ predictions/yolov8m-b/train2017/0001.txt
 
 ## 相关代码
 
-- CLI 入口: [pycvt/tools/yolo_predict.py](/home/user/pycvt/pycvt/tools/yolo_predict.py:1)
-- 配置解析: [pycvt/tools/predict_config.py](/home/user/pycvt/pycvt/tools/predict_config.py:1)
-- 数据集预测: [pycvt/tools/yolo_dataset.py](/home/user/pycvt/pycvt/tools/yolo_dataset.py:1)
+- CLI 入口: `pycvt/tools/yolo_predict.py`
+- 配置解析: `pycvt/tools/predict_config.py`
+- 数据集预测: `pycvt/tools/yolo_dataset.py`
