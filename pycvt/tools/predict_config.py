@@ -26,7 +26,6 @@ class ModelConfig:
 class PredictionStoreConfig:
     root: str = "predictions"
     run: str | None = None
-    plot: bool = False
 
 
 @dataclass
@@ -85,7 +84,6 @@ def load_predict_config(config_path: str | Path) -> PredictConfig:
         prediction_store=PredictionStoreConfig(
             root=str(pred_raw.get("root", "predictions")),
             run=str(pred_raw["run"]) if pred_raw.get("run") else None,
-            plot=bool(pred_raw.get("plot", False)),
         ),
         ray=RayConfig(
             num_actors=int(ray_raw["num_actors"]) if ray_raw.get("num_actors") is not None else None,

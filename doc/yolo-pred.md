@@ -39,7 +39,6 @@ dataset: data/coco128.yaml
 prediction_store:
   root: predictions
   run: yolov8m-ts-640
-  plot: true
 
 model:
   name: yolov8det
@@ -62,7 +61,6 @@ ray:
 - `dataset`: 数据集 YAML 路径
 - `prediction_store.root`: 预测标签根目录名
 - `prediction_store.run`: 当前模型/实验名
-- `prediction_store.plot`: 是否保存可视化图片
 - `model.name`: `cvmd` 使用的模型类型
 - `model.weights`: 模型权重路径
 - `model.conf`: 置信度阈值
@@ -105,12 +103,6 @@ images/val/a.jpg
 ```text
 data/coco128/images/train2017/0001.jpg
 -> data/coco128/predictions/yolov8m-ts-640/train2017/0001.txt
-```
-
-如果开启 `plot: true`，还会保存：
-
-```text
-data/coco128/predictions/yolov8m-ts-640/train2017/0001.jpg
 ```
 
 ## GPU 行为

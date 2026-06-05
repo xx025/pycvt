@@ -11,7 +11,6 @@ from pycvt.annotations.yolo import save_yolo_annotations
 from pycvt.tools.predict_config import PredictConfig, build_model, default_run_name
 from pycvt.utils.yaml_utils import load_yaml
 from pycvt.vision.bbox import xyxy2xywhn
-from pycvt.vision.plot_boxes import draw_bounding_boxes
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
@@ -146,18 +145,6 @@ def save_prediction_txt(
     )
 
 
-def plot_detections(image: np.ndarray, detections: np.ndarray, output_path: str | Path) -> None:
-    output_file = Path(output_path)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    canvas = draw_bounding_boxes(
-        image=image.copy(),
-        boxes=detections[:, :4].astype(int),
-        labels=[f"{int(cls_id)} {float(conf):.2f}" for *_, conf, cls_id in detections],
-        line_width=2,
-    )
-    iio.imwrite(output_file.as_posix(), canvas, quality=95)
-
-
 class YoloPredictActor:
     def __init__(self, model_kwargs: dict[str, Any], runs_config: dict[str, Any]):
         build_kwargs = dict(model_kwargs["build_kwargs"])
@@ -179,10 +166,8 @@ class YoloPredictActor:
             txt_path = run_prediction_task(
                 image_path=task,
                 model=self.model,
-                dataset_root=self.runs_config["dataset_root"],
                 run_name=self.runs_config["run_name"],
                 prediction_root=self.runs_config["prediction_root"],
-                plot=self.runs_config["plot"],
             )
             return {"status": "ok", "image_path": task, "txt_path": str(txt_path)}
         except Exception as exc:
@@ -203,10 +188,8 @@ def collect_dataset_images(sources: list[tuple[str, Path]]) -> list[Path]:
 def run_prediction_task(
     image_path: str | Path,
     model: Any,
-    dataset_root: str | Path,
     run_name: str,
     prediction_root: str,
-    plot: bool,
 ) -> Path:
     image_file = Path(image_path).resolve()
     image = iio.imread(image_file, mode="RGB")
@@ -225,9 +208,6 @@ def run_prediction_task(
         classes=classes,
         confs=scores,
     )
-
-    if plot:
-        plot_detections(image, detections, txt_path.with_suffix(".jpg"))
 
     return txt_path
 
@@ -267,10 +247,8 @@ def predict_dataset_ray(
         },
     }
     runs_config = {
-        "dataset_root": str(dataset_root),
         "run_name": run_name,
         "prediction_root": config.prediction_store.root,
-        "plot": config.prediction_store.plot,
     }
     actor_kwargs = {
         "runs_config": runs_config,
