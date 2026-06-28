@@ -1309,7 +1309,7 @@ wheels = [
 
 [[package]]
 name = "pycvt"
-version = "0.0.1.post202606281918"
+version = "0.1.0.post202606281922"
 source = { editable = "." }
 dependencies = [
     { name = "distinctipy" },
