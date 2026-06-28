@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "pyproject.toml"
+      - "pycvt/_version.py"
 
 permissions:
   contents: write   # 给 workflow 写权限
@@ -21,10 +22,16 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Extract version from pyproject.toml
+    - name: Extract version
       id: get_version
       run: |
-        VERSION=$(grep '^version =' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+        VERSION=$(python - <<'PY'
+        ns = {}
+        with open("pycvt/_version.py", "r", encoding="utf-8") as f:
+            exec(f.read(), ns)
+        print(ns["__version__"])
+        PY
+        )
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Check if tag already exists
