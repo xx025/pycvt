@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from filelock import FileLock
+import numpy as np
 from PIL import Image
 
 from .yolo import load_yolo_annotations
@@ -233,7 +234,8 @@ def categories_from_names(names: Sequence[str]) -> list[dict]:
 
 
 def yolo_bbox_to_coco_bbox(values: Sequence[float], width: int, height: int) -> list[float]:
-    xyxy = xywhn2xyxy([values], w=width, h=height, safe=True)[0]
+    xywhn = np.asarray([values], dtype=float)
+    xyxy = xywhn2xyxy(xywhn, w=width, h=height, safe=True)[0]
     x1, y1, x2, y2 = [float(value) for value in xyxy]
     return [x1, y1, max(0.0, x2 - x1), max(0.0, y2 - y1)]
 
@@ -505,5 +507,4 @@ def prepare_yolo_dataset_for_coco(
             ready_file.write_text("ok\n", encoding="utf-8")
 
     return str(dataset_dir)
-
 
