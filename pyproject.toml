@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pycvt"
-version = "0.0.1-202606050006"
+dynamic = ["version"]
 authors = [
   { name = "ferretsprite", email = "ferret-sprite-goon@duck.com" }
 ]
@@ -13,6 +13,7 @@ description = "pycvt is a Python package designed for computer vision utilities,
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "filelock>=3.16.1",
     "imageio>=2.37.0",
     "numpy>=1.26.0",
     "opencv-python>=4.12.0.88",
@@ -46,6 +47,9 @@ Documentation = "https://github.com/"
 
 [tool.uv]
 index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+
+[tool.setuptools.dynamic]
+version = { attr = "pycvt._version.__version__" }
 
 [dependency-groups]
 dev = [

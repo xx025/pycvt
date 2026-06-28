@@ -1,6 +1,8 @@
 from importlib.resources import files
 from pathlib import Path
 
+from ._version import __version__
+
 _pycvt_basepath_ = files("pycvt")
 
 example_file = Path(_pycvt_basepath_) / "static/example_file.jpg"
@@ -10,6 +12,10 @@ from .annotations.yolo import (
     save_yolo_annotations,
     load_yolo_names,
     save_inference_results
+)
+from .annotations.coco import (
+    convert_yolo_dataset_to_coco,
+    prepare_yolo_dataset_for_coco,
 )
 
 
@@ -45,6 +51,8 @@ __all__ = [
     "save_yolo_annotations",
     "load_yolo_names",
     "save_inference_results",
+    "convert_yolo_dataset_to_coco",
+    "prepare_yolo_dataset_for_coco",
     "draw_bounding_boxes",
     "xyxy2xywh",
     "xywh2xyxy",
@@ -59,4 +67,5 @@ __all__ = [
     "get_color",
     "overlay_masks",
     "example_file",
+    "__version__",
 ]
