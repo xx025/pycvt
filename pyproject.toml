@@ -51,6 +51,9 @@ index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
 [tool.setuptools.dynamic]
 version = { attr = "pycvt._version.__version__" }
 
+[tool.setuptools.packages.find]
+include = ["pycvt*"]
+
 [dependency-groups]
 dev = [
     "imageio>=2.37.0",
