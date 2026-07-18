@@ -1,6 +1,8 @@
 from pathlib import Path
 import numpy as np
 
+from pycvt.vision.bbox import _as_box_array
+
 
 def render_text_image(text, font_path, font_size, text_color=(255, 255, 255), bg_color=None):
     from PIL import Image
@@ -33,8 +35,8 @@ def iou(gtboxes, dtboxes):
     Returns:
         np.ndarray: Shape (B,N)  .
     '''
-
-
+    gtboxes = _as_box_array(gtboxes)
+    dtboxes = _as_box_array(dtboxes)
     gtboxes = gtboxes[:, np.
                       newaxis, :]  #converse gtboxes:(B,4) to gtboxes:(B,1,4)
     ixmin = np.maximum(gtboxes[:, :, 0], dtboxes[:, 0])

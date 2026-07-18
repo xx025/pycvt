@@ -8,6 +8,16 @@ from pycvt.vision.bbox import xyxy2xywhn
 from pycvt.vision.plot_boxes import draw_bounding_boxes
 
 
+def ensure_prediction_array(pred: Any) -> np.ndarray:
+    pred = np.asarray(pred, dtype=float)
+    if pred.size == 0:
+        return np.empty((0, 6), dtype=float)
+    pred = np.atleast_2d(pred)
+    if pred.shape[1] < 6:
+        raise ValueError(f"Expected predictions with at least 6 columns, got shape {pred.shape}")
+    return pred[:, :6]
+
+
 def parase_yolo_line(line):
     line = str(line)
     parts = line.strip().split()
@@ -61,7 +71,7 @@ def load_yolo_annotations(
             confs.append(np.nan if conf is None else conf)
 
     cls_array = np.array(cls, dtype=int)
-    bboxes_array = np.array(bboxes, dtype=float)
+    bboxes_array = np.array(bboxes, dtype=float).reshape(-1, 4)
     if return_confs:
         return cls_array, bboxes_array, segs, np.array(confs, dtype=float)
     return cls_array, bboxes_array, segs
@@ -109,6 +119,7 @@ def save_inference_results(
     save_plot_dir: Path = None,
     save_source_dir: Path = None,
 ):
+    pred = ensure_prediction_array(pred)
     save_txt_dir = save_txt_dir or save_dir / "labels"
     save_plot_dir = save_plot_dir or save_dir / "plot"
     save_source_dir = save_source_dir or save_dir / "source"

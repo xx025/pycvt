@@ -1,6 +1,15 @@
 import numpy as np
 
 
+def _as_box_array(x):
+    x = np.asarray(x, dtype=float)
+    if x.size == 0:
+        return np.empty((0, 4), dtype=float)
+    if x.shape[-1] != 4:
+        raise ValueError(f"Expected boxes with last dimension 4, got shape {x.shape}")
+    return x
+
+
 def generate_sliding_windows(im_shape, ws=(800, 800), s=None):
     im_h, im_w = im_shape[:2]
 
@@ -47,8 +56,8 @@ def box_iou(boxes1, boxes2):
     Returns:
         iou (np.ndarray): [N, M]，每个 box1 和每个 box2 的 IoU
     """
-    boxes1 = np.asarray(boxes1)
-    boxes2 = np.asarray(boxes2)
+    boxes1 = _as_box_array(boxes1)
+    boxes2 = _as_box_array(boxes2)
     N = boxes1.shape[0]
     M = boxes2.shape[0]
 
@@ -72,6 +81,7 @@ def xyxy2xywhn(x, w: int = 640, h: int = 640, safe: bool = True):
     Convert bounding boxes from (x1, y1, x2, y2) format to
     normalized (x_center, y_center, width, height) format.
     """
+    x = _as_box_array(x)
     y = np.empty_like(x, dtype=float)
     x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
     y[..., 0] = ((x1 + x2) / 2) / w  # x center
@@ -88,6 +98,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, safe: bool = True):
     Convert bounding boxes from normalized (x_center, y_center, width, height) format
     to (x1, y1, x2, y2) format.
     """
+    x = _as_box_array(x)
     y = np.empty_like(x, dtype=float)
     x_c, y_c, bw, bh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
     y[..., 0] = (x_c - bw / 2) * w  # x1
@@ -107,6 +118,7 @@ def xyxy2xywh(x):
     Convert bounding boxes from (x1, y1, x2, y2) format to
     (x_center, y_center, width, height) format.
     """
+    x = _as_box_array(x)
     y = np.empty_like(x, dtype=float)
     x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
     y[..., 0] = (x1 + x2) / 2  # x center
@@ -121,6 +133,7 @@ def xywh2xyxy(x):
     Convert bounding boxes from (x_center, y_center, width, height) format
     to (x1, y1, x2, y2) format.
     """
+    x = _as_box_array(x)
     y = np.empty_like(x, dtype=float)
     x_c, y_c, bw, bh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
     y[..., 0] = x_c - bw / 2  # x1
@@ -159,6 +172,9 @@ def crop_with_bbox(
 
     def return_empty_crop(sub_im):
         return sub_im, np.zeros((0, 5), dtype=np.float32)
+
+    xyxy = _as_box_array(xyxy)
+    cls = np.asarray(cls)
 
     ious = box_iou(xyxy, windows)
     crop_imgs = [image[y1:y2, x1:x2] for (x1, y1, x2, y2) in windows]
